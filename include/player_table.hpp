@@ -48,6 +48,14 @@ namespace tk {
                 tk_assert(it != playerList.end(), format("Player %% could not be removed. Was not in the player table", id));
                 playerList.erase(it);
             }
+
+            std::vector<int> getIDs() const {
+                std::vector<int> ids;
+                for (const Player& player : playerList) {
+                    ids.push_back(player.id);
+                }
+                return ids;
+            }
         private:
             std::vector<Player> playerList;
 
@@ -60,23 +68,22 @@ namespace tk {
     namespace core {
         template <class T>
         void serialize(Blob& blob, const net::PlayerTable<T>& table) {
-            serialize(blob, table.playerList);
+            serialize(blob, (int)table.playerList.size());
+            for (int i = 0; i < table.playerList.size(); ++i) {
+                serialize(blob, table.playerList[i].id, table.playerList[i].info);
+            }
         }
 
         template <class T>
         void deserialize(Blob::const_iterator& it, net::PlayerTable<T>& table) {
-            deserialize(it, table.playerList);
-        }
-
-        template <class T>
-        void serialize(Blob& blob, const typename net::PlayerTable<T>::Player& player) {
-            serialize(blob, player.id, player.info);
-        }
-
-        template <class T>
-        void deserialize(Blob::const_iterator& it, typename net::PlayerTable<T>::Player& player) {
-            deserialize(it, player.id, player.info);
-            player.handle = nullptr;
+            int size;
+            deserialize(it, size);
+            table.playerList.clear();
+            table.playerList.resize(size);
+            for (int i = 0; i < size; ++i) {
+                table.playerList[i].handle = nullptr;
+                deserialize(it, table.playerList[i].id, table.playerList[i].info);
+            }
         }
     }
 }

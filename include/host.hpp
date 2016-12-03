@@ -17,11 +17,6 @@ namespace tk {
             typedef void* Handle;
             typedef std::vector<uint8_t> Packet;
 
-        private:
-
-            void send(Handle handle, int channel, bool reliable, const Packet& packet);
-            void broadcast(int channel, bool reliable, const Packet& packet);
-
         public:
 
             core::Event<Handle>& onConnect;
@@ -37,7 +32,13 @@ namespace tk {
             void createClient(const std::string& address, int port);
             void createServer(int port);
 
+            void disconnect(Handle remote);
+            void shutdownServer();
+
             void pollEvents();
+
+            void send(Handle handle, int channel, bool reliable, const Packet& packet);
+            void broadcast(int channel, bool reliable, const Packet& packet);
 
             template <class ...Args>
             void send(Handle handle, int channel, bool reliable, const Args&... args) {

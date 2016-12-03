@@ -49,6 +49,10 @@ namespace tk {
         }
 
         void Host::pollEvents() {
+            if (impl->host == nullptr) {
+                return;
+            }
+
             ENetEvent event;
             while (enet_host_service(impl->host, &event, 0) > 0) {
                 std::vector<ENetPeer*>::iterator peerIt;
@@ -84,6 +88,17 @@ namespace tk {
             ENetPacket* message = enet_packet_create(packet.data(), packet.size(), reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
             enet_host_broadcast(impl->host, channel, message);
             enet_host_flush(impl->host); // TODO: Is this needed?
+        }
+
+        void Host::disconnect(Handle remote) {
+            enet_peer_disconnect(reinterpret_cast<ENetPeer*>(remote), 0);
+            enet_host_flush(impl->host);
+        }
+
+        void Host::shutdownServer() {
+            for (ENetPeer* peer : impl->peers) {
+                disconnect(peer);
+            }
         }
     }
 }

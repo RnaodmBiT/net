@@ -28,32 +28,28 @@ namespace tk {
             void handlePlayerData(Host::Handle handle, Host::Packet::const_iterator msg) {
                 typename PlayerTable<PlayerInfo>::Player* player = players.get(handle);
                 core::deserialize(msg, player->info);
-                host.broadcast(0, true, (MessageType)Message::NewPlayer, players);
-
+                host.broadcast(0, true, (MessageType)Message::PlayerConnected, player->id, players);
                 onPlayerConnected(player->id);
             }
 
         public:
             core::Event<int> onPlayerConnected;
             core::Event<int> onPlayerDisconnected;
-            core::Event<> onPlayerTimeout;
-            core::Event<> onMessageReceived;
+            core::Event<int, const Host::Packet&> onMessageReceived;
 
-            Server(PlayerInfo local) : freePlayerID(2) {
-                players.add(1, nullptr, local);
-
+            Server() : freePlayerID(1) {
                 onConnect.event = [this] (Host::Handle connection) {
                     int newID = freePlayerID++;
                     tk_info(format("New player connected (%%)", newID));
                     players.add(newID, connection);
-
                     host.send(connection, 0, true, (MessageType)Message::PlayerID, newID);
                 };
 
                 onDisconnect.event = [this] (Host::Handle connection) {
-                    auto player = players.get(connection);
-                    onPlayerDisconnected(player->id);
-                    players.remove(player->id);
+                    int id = players.get(connection)->id;
+                    onPlayerDisconnected(id);
+                    players.remove(id);
+                    host.broadcast(0, true, (MessageType)Message::PlayerDisconnected, id, players);
                 };
 
                 onReceive.event = [this] (Host::Handle connection, int channel, const Host::Packet& packet) {
@@ -68,7 +64,7 @@ namespace tk {
                             break;
                         }
                     } else {
-                        // client message
+                        onMessageReceived(players.get(connection)->id, packet);
                     }
                 };
 
@@ -87,7 +83,27 @@ namespace tk {
                 host.pollEvents();
             }
 
+            void disconnect() {
+                host.shutdownServer();
+            }
 
+            template <class ...Args>
+            void broadcast(bool reliable, const Args&... args) {
+                host.broadcast(1, reliable, args...);
+            }
+
+            void broadcast(bool reliable, const Host::Packet& packet) {
+                host.broadcast(1, reliable, packet);
+            }
+
+            template <class ...Args>
+            void send(int player, bool reliable, const Args&... args) {
+                host.send(players.get(player)->handle, 1, reliable, args...);
+            }
+
+            void send(int player, bool reliable, const Host::Packet& packet) {
+                host.send(players.get(player)->handle, 1, reliable, packet);
+            }
         };
     }
 }

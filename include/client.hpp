@@ -16,32 +16,50 @@ namespace tk {
             Host host;
             Host::Handle server;
             PlayerInfo localPlayer;
-            PlayerTable<PlayerInfo> players;
-            int localID;
+
+            bool hasCompletedConnection;
 
             core::Delegate<Host::Handle> onConnect, onDisconnect;
             core::Delegate<Host::Handle, int, const Host::Packet&> onReceive;
 
             void handlePlayerID(Host::Packet::const_iterator msg) {
-                core::deserialize(msg, localID);
-                tk_info(core::format("Client received player ID %%", localID));
+                core::deserialize(msg, id);
+                tk_info(core::format("Client received player ID %%", id));
                 host.send(server, 0, true, (MessageType)Message::PlayerData, localPlayer);
             }
 
-            void handleNewPlayer(Host::Packet::const_iterator msg) {
+            void handlePlayerConnected(Host::Packet::const_iterator msg) {
+                int newPlayer;
+                core::deserialize(msg, newPlayer, players);
+                tk_info(core::format("Client received new connection for %%", newPlayer));
+                if (!hasCompletedConnection && newPlayer == id) {
+                    hasCompletedConnection = true;
+                    onConnectedToServer();
+                } else {
+                    onPlayerConnected(newPlayer);
+                }
+            }
+
+            void handlePlayerDisconnected(Host::Packet::const_iterator msg) {
+                int deadPlayer;
+                core::deserialize(msg, deadPlayer);
+                tk_info(core::format("Client received disconnection for %%", deadPlayer));
+                onPlayerDisconnected(deadPlayer);
                 core::deserialize(msg, players);
             }
 
         public:
-            core::Event<> onPlayerConnected;
-            core::Event<> onPlayerDisconnected;
-            core::Event<> onPlayerTimeout;
-            core::Event<> onMessageReceived;
+            core::Event<int> onPlayerConnected;
+            core::Event<int> onPlayerDisconnected;
+            core::Event<const Host::Packet&> onMessageReceived;
 
             core::Event<> onConnectedToServer;
-            core::Event<> onServerTimeout;
+            core::Event<> onServerDisconnected;
 
-            Client(PlayerInfo local) : localPlayer(local), localID(-1) { 
+            PlayerTable<PlayerInfo> players;
+            int id;
+
+            Client() : id(-1), hasCompletedConnection(false) {
                 onConnect.event = [this] (Host::Handle connection) {
                     server = connection;
                 };
@@ -55,18 +73,19 @@ namespace tk {
                         MessageType type;
                         core::deserialize(it, type);
 
-                        tk_info(core::format("New message: %%", (int)type));
-
                         switch (type) {
                         case Message::PlayerID:
                             handlePlayerID(it);
                             break;
-                        case Message::NewPlayer:
-                            handleNewPlayer(it);
+                        case Message::PlayerConnected:
+                            handlePlayerConnected(it);
+                            break;
+                        case Message::PlayerDisconnected:
+                            handlePlayerDisconnected(it);
                             break;
                         }
                     } else {
-                        // client message
+                        onMessageReceived(packet);
                     }
                 };
 
@@ -77,12 +96,22 @@ namespace tk {
 
             ~Client() { }
 
-            void connect(const std::string& address, int port) {
+            void connect(const std::string& address, int port, PlayerInfo local) {
+                localPlayer = local;
                 host.createClient(address, port);
             }
 
             void pollEvents() {
                 host.pollEvents();
+            }
+
+            void disconnect() {
+                host.disconnect(server);
+            }
+
+            template <class ...Args>
+            void send(bool reliable, const Args&... args) {
+                host.send(server, 1, true, args...);
             }
 
         };
