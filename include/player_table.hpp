@@ -1,5 +1,6 @@
 #pragma once
 #include <host.hpp>
+#include <core.hpp>
 #include <vector>
 
 namespace tk {
@@ -24,7 +25,7 @@ namespace tk {
                 });
 
                 if (it == playerList.end()) {
-                    tk_assert(!assert, format("Could not find player with id %%", id));
+                    tk_assert(!assert, core::format("Could not find player with id %%", id));
                     return nullptr;
                 } else {
                     return &(*it);
@@ -45,7 +46,7 @@ namespace tk {
                     return p.id == id;
                 });
 
-                tk_assert(it != playerList.end(), format("Player %% could not be removed. Was not in the player table", id));
+                tk_assert(it != playerList.end(), core::format("Player %% could not be removed. Was not in the player table", id));
                 playerList.erase(it);
             }
 
@@ -59,8 +60,8 @@ namespace tk {
         private:
             std::vector<Player> playerList;
 
-            friend void tk::core::serialize(Blob&, const PlayerTable&);
-            friend void tk::core::deserialize(Blob::const_iterator&, PlayerTable&);
+            friend void tk::core::serialize(core::Blob&, const PlayerTable&);
+            friend void tk::core::deserialize(core::Blob::const_iterator&, PlayerTable&);
         };
 
     }
