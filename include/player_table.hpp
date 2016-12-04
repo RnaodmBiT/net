@@ -57,34 +57,32 @@ namespace tk {
                 }
                 return ids;
             }
-        private:
-            std::vector<Player> playerList;
 
-            friend void tk::core::serialize(core::Blob&, const PlayerTable&);
-            friend void tk::core::deserialize(core::Blob::const_iterator&, PlayerTable&);
+            std::vector<Player> playerList;
         };
 
     }
 
     namespace core {
         template <class T>
-        void serialize(Blob& blob, const net::PlayerTable<T>& table) {
-            serialize(blob, (int)table.playerList.size());
-            for (int i = 0; i < table.playerList.size(); ++i) {
-                serialize(blob, table.playerList[i].id, table.playerList[i].info);
+        struct convert<net::PlayerTable<T>> {
+            void serialize(Blob& blob, const net::PlayerTable<T>& table) {
+                tk::core::serialize(blob, (int)table.playerList.size());
+                for (int i = 0; i < table.playerList.size(); ++i) {
+                    tk::core::serialize(blob, table.playerList[i].id, table.playerList[i].info);
+                }
             }
-        }
 
-        template <class T>
-        void deserialize(Blob::const_iterator& it, net::PlayerTable<T>& table) {
-            int size;
-            deserialize(it, size);
-            table.playerList.clear();
-            table.playerList.resize(size);
-            for (int i = 0; i < size; ++i) {
-                table.playerList[i].handle = nullptr;
-                deserialize(it, table.playerList[i].id, table.playerList[i].info);
+            void deserialize(Blob::const_iterator& it, net::PlayerTable<T>& table) {
+                int size;
+                tk::core::deserialize(it, size);
+                table.playerList.clear();
+                table.playerList.resize(size);
+                for (int i = 0; i < size; ++i) {
+                    table.playerList[i].handle = nullptr;
+                    tk::core::deserialize(it, table.playerList[i].id, table.playerList[i].info);
+                }
             }
-        }
+        };
     }
 }

@@ -44,7 +44,7 @@ endif()
  
 include_directories(${PROJECT_SOURCE_DIR}/include)
  
-add_library(enet STATIC
+add_library(enet SHARED
         callbacks.c
         compress.c
         host.c
