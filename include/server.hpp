@@ -40,7 +40,7 @@ namespace tk {
             Server() : freePlayerID(1) {
                 onConnect.event = [this] (Host::Handle connection) {
                     int newID = freePlayerID++;
-                    tk_info(format("New player connected (%%)", newID));
+                    tk_info(core::format("New player connected (%%)", newID));
                     players.add(newID, connection);
                     host.send(connection, 0, true, (MessageType)Message::PlayerID, newID);
                 };
