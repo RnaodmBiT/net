@@ -10,6 +10,8 @@ extern "C"
 {
 #endif
 
+#define ENET_DLL
+
 #include <stdlib.h>
 
 #ifdef _WIN32
