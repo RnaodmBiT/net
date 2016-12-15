@@ -43,8 +43,11 @@ if(HAS_SOCKLEN_T)
 endif()
  
 include_directories(${PROJECT_SOURCE_DIR}/include)
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
  
-add_library(enet SHARED
+add_library(enet STATIC
         callbacks.c
         compress.c
         host.c
