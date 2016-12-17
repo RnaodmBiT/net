@@ -81,13 +81,11 @@ namespace tk {
         void Host::send(Handle handle, int channel, bool reliable, const Packet& packet) {
             ENetPacket* message = enet_packet_create(packet.data(), packet.size(), reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
             enet_peer_send(reinterpret_cast<ENetPeer*>(handle), channel, message);
-            enet_host_flush(impl->host); // TODO: Is this needed?
         }
 
         void Host::broadcast(int channel, bool reliable, const Packet& packet) {
             ENetPacket* message = enet_packet_create(packet.data(), packet.size(), reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
             enet_host_broadcast(impl->host, channel, message);
-            enet_host_flush(impl->host); // TODO: Is this needed?
         }
 
         void Host::disconnect(Handle remote) {
