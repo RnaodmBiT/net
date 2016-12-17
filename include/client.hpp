@@ -104,6 +104,14 @@ namespace tk {
 
             ~Client() { }
 
+            PlayerInfo* getPlayer(int pid = -1) {
+                if (pid == -1) {
+                    pid = id;
+                }
+                typename PlayerTable<PlayerInfo>::Player* player = players.get(pid);
+                return player ? &player->info : nullptr;
+            }
+
             void connect(const std::string& address, int port, PlayerInfo local) {
                 localPlayer = local;
                 host.createClient(address, port);
