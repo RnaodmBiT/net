@@ -48,6 +48,11 @@ namespace tk {
                 core::deserialize(msg, players);
             }
 
+            void handlePlayerTableUpdate(Host::Packet::const_iterator msg) {
+                tk_info("Received updated player table");
+                core::deserialize(msg, players);
+            }
+
         public:
             core::Event<int> onPlayerConnected;
             core::Event<int> onPlayerDisconnected;
@@ -82,6 +87,9 @@ namespace tk {
                             break;
                         case Message::PlayerDisconnected:
                             handlePlayerDisconnected(it);
+                            break;
+                        case Message::PlayerTableUpdate:
+                            handlePlayerTableUpdate(it);
                             break;
                         }
                     } else {

@@ -75,6 +75,15 @@ namespace tk {
 
             ~Server() { }
 
+            PlayerInfo* getPlayer(int id) {
+                typename PlayerTable<PlayerInfo>::Player* player = players.get(id);
+                return player ? &player->info : nullptr;
+            }
+
+            void updatePlayerTable() {
+                host.broadcast(0, true, (MessageType)Message::PlayerTableUpdate, players);
+            }
+
             void start(int port) {
                 host.createServer(port);
             }

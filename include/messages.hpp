@@ -11,6 +11,7 @@ namespace tk {
             PlayerData,         // Client -> Server
             PlayerConnected,    // Broadcast
             PlayerDisconnected, // Broadcast
+            PlayerTableUpdate,  // Broadcast
             Count
         };
 
