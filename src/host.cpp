@@ -21,9 +21,14 @@ namespace tk {
             impl(new Impl()),
             onConnect(impl->onConnect),
             onReceive(impl->onReceive),
-            onDisconnect(impl->onDisconnect) { }
+            onDisconnect(impl->onDisconnect) {
+            impl->host = nullptr;
+        }
 
         Host::~Host() {
+            if (impl->host) {
+                enet_host_destroy(impl->host);
+            }
             delete impl;
         }
 
