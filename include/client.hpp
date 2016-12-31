@@ -103,7 +103,9 @@ namespace tk {
                 host.onReceive.attach(onReceive);
             }
 
-            ~Client() { }
+            ~Client() {
+                disconnect();
+            }
 
             PlayerInfo* getPlayer(int pid = -1) {
                 if (pid == -1) {
