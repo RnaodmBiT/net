@@ -70,6 +70,7 @@ namespace tk {
                 };
 
                 onDisconnect.event = [this] (Host::Handle connection) {
+                    onServerDisconnected();
                 };
 
                 onReceive.event = [this] (Host::Handle connection, int channel, const Host::Packet& packet) {
