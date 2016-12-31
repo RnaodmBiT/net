@@ -80,6 +80,14 @@ namespace tk {
                 return player ? &player->info : nullptr;
             }
 
+            std::vector<int> getPlayerIDs() const {
+                std::vector<int> ids;
+                for (auto& p : players.playerList) {
+                    ids.push_back(p.id);
+                }
+                return ids;
+            }
+
             void updatePlayerTable() {
                 host.broadcast(0, true, (MessageType)Message::PlayerTableUpdate, players);
             }
